@@ -13,4 +13,9 @@ class Sintoma extends Model
     {
         return $this->belongsToMany(Enfermedad::class);
     }
+
+    public function pacientes()
+    {
+        return $this->belongsToMany(Paciente::class, 'paciente_sintomas_previos', 'sintoma_id', 'paciente_rut');
+    }
 }

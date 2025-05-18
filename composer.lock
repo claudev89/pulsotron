@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3bc363b5aa09c8e7e587609508b0a85e",
+    "content-hash": "0f8b403cfd254cb06b40f6b0a3b92bc9",
     "packages": [
         {
             "name": "anourvalar/eloquent-serialize",
@@ -5652,6 +5652,85 @@
                 }
             ],
             "time": "2024-04-27T21:32:50+00:00"
+        },
+        {
+            "name": "ruelluna/canvas-pointer",
+            "version": "1.0.4",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ruelluna/canvas-pointer.git",
+                "reference": "74f5bd46b1b39af42c6f1c06141ac5aa6417cfa8"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ruelluna/canvas-pointer/zipball/74f5bd46b1b39af42c6f1c06141ac5aa6417cfa8",
+                "reference": "74f5bd46b1b39af42c6f1c06141ac5aa6417cfa8",
+                "shasum": ""
+            },
+            "require": {
+                "filament/filament": "^3.0",
+                "php": "^8.1",
+                "spatie/laravel-package-tools": "^1.15.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^7.9",
+                "nunomaduro/larastan": "^2.0.1",
+                "orchestra/testbench": "^8.0",
+                "pestphp/pest": "^2.1",
+                "pestphp/pest-plugin-arch": "^2.0",
+                "pestphp/pest-plugin-laravel": "^2.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan-deprecation-rules": "^1.0",
+                "phpstan/phpstan-phpunit": "^1.0",
+                "spatie/laravel-ray": "^1.26"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "CanvasPointer": "RuelLuna\\CanvasPointer\\Facades\\CanvasPointer"
+                    },
+                    "providers": [
+                        "RuelLuna\\CanvasPointer\\CanvasPointerServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "RuelLuna\\CanvasPointer\\": "src/",
+                    "RuelLuna\\CanvasPointer\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Ruel Luna",
+                    "email": "ruelluna@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A Filament field that allows users to click and point markers on an image.",
+            "homepage": "https://github.com/ruelluna/canvas-pointer",
+            "keywords": [
+                "RuelLuna",
+                "canvas-pointer",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/ruelluna/canvas-pointer/issues",
+                "source": "https://github.com/ruelluna/canvas-pointer"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/RuelLuna",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-10-15T06:56:28+00:00"
         },
         {
             "name": "ryangjchandler/blade-capture-directive",
