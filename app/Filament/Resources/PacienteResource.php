@@ -8,27 +8,27 @@ use App\Models\Comuna;
 use App\Models\Enfermedad;
 use App\Models\Paciente;
 use App\Models\Region;
-use App\Models\Sintoma;
 use Carbon\Carbon;
-use Faker\Provider\Text;
-use Filament\Forms;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\Radio;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
+use Filament\Tables\Columns\TextColumn;
 
 class PacienteResource extends Resource
 {
     protected static ?string $model = Paciente::class;
+    protected static ?string $recordRouteKeyName = 'rut';
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
@@ -43,9 +43,9 @@ class PacienteResource extends Resource
                         ->columnSpan(3)
                         ->autofocus()
                         ->required(),
-                    DatePicker::make('created')
+                    DatePicker::make('created_at')
                         ->columnSpan(2)
-                        ->label('Fecha')
+                        ->label('Fecha de ingreso')
                         ->default(now())
                         ->required(),
                     TextInput::make('ocupacion')
@@ -62,7 +62,15 @@ class PacienteResource extends Resource
                         )
                         ->columnSpan(3),
                     TextInput::make('edad')->disabled(),
-                    TextInput::make('rut')->required()->columnSpan(3),
+                    TextInput::make('rut')
+                        ->mask(RawJs::make(<<<'JS'
+        $input.replace(/\D/g, '').length <= 7
+            ? '9.999.999-**'
+            : '99.999.999-**'
+    JS))
+                        ->stripCharacters(['.'])
+                        ->placeholder('12.345.678-9')
+                        ->required()->columnSpan(3),
 
                     Select::make('region_id')
                         ->label('Región')
@@ -70,6 +78,7 @@ class PacienteResource extends Resource
                         ->live()
                         ->required()
                         ->searchable()
+                        ->dehydrated(false)
                         ->columnSpan(2),
                     Select::make('comuna_id')
                         ->label('Comuna')
@@ -123,118 +132,86 @@ class PacienteResource extends Resource
                         ->columnSpan(2),
                 ])->columns(7),
 
-                Section::make('Historial médico')
-                    ->description('Principal motivo de la consulta y tiempo de dolencia (enumerar en orden de prioridad)')
+                Section::make('Estilo de vida')
                     ->columns(6)
                     ->schema([
                         Section::make()
                         ->schema([
-                            TextInput::make('motivo_consulta_1')
-                                ->label('1.')
-                                ->required()
-                                ->reactive(),
-                            TextInput::make('motivo_consulta_2')
-                                ->label('2.')
-                                ->disabled(fn(callable $get) => empty($get('motivo_consulta_1')))
-                                ->reactive(),
-                            TextInput::make('motivo_consulta_3')
-                                ->label('3.')
-                                ->disabled(fn(callable $get) => empty($get('motivo_consulta_2')))
-                                ->reactive(),
-                        ])->columnSpan(3),
+                            Radio::make('deportes')
+                                ->dehydrated(false)
+                                ->boolean()
+                                ->inline()
+                                ->label('¿Haces deporte?')
+                                ->afterStateUpdated(function ($state, callable $set) {
+                                    $set('deporte', null);
+                                })
+                            ->reactive(),
+                            TextInput::make('deporte')
+                            ->label('veces por semana')
+                            ->numeric()
+                            ->maxValue(7)
+                            ->minValue(0)
+                                ->reactive()
+                            ->hidden(fn ($get) => $get('deportes') !== '1'),
+
+                             Radio::make('alcohols')
+                                 ->dehydrated(false)
+                                 ->boolean()
+                                 ->inline()
+                                 ->label('¿Tomas alcohol?')
+                                 ->afterStateUpdated(function ($state, callable $set) {
+                                     $set('alcohol', null);
+                                 })
+                                 ->reactive(),
+                            TextInput::make('alcohol')
+                                ->label('veces por semana')
+                                ->numeric()
+                                ->maxValue(7)
+                                ->minValue(0)
+                                ->reactive()
+                                ->hidden(fn ($get) => $get('alcohols') !== '1')
+                        ])->columnSpan(2),
 
                         Section::make()
                             ->schema([
-                                TextInput::make('diagnostico_occidental')
-                                    ->label('Diagnóstico occidental'),
-                                TextInput::make('tratamiento')
-                                    ->label('Tratamiento'),
-                                TextInput::make('cirugía')
-                                    ->label('¿Ha tenido alguna cirugía?')
-                            ])->columnSpan(3),
+                                Radio::make('fumas')
+                                    ->dehydrated(false)
+                                    ->boolean()
+                                    ->inline()
+                                    ->label('¿Fumas?')
+                                    ->afterStateUpdated(function ($state, callable $set) {
+                                        $set('fuma', null);
+                                    })
+                                    ->reactive(),
+                                TextInput::make('fuma')
+                                    ->label('cantidad por día')
+                                    ->numeric()
+                                    ->maxValue(80)
+                                    ->minValue(0)
+                                    ->reactive()
+                                    ->hidden(fn ($get) => $get('fumas') !== '1'),
 
-                        Section::make('Has tenido alguno de los siguientes síntomas?')
-                            ->schema([
-                                Radio::make('depresion')
-                                    ->label('Depresión')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('irritabilidad')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('falta_de_concentracion')
-                                    ->label('Falta de concentración')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('estres')
-                                    ->label('Estrés')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('ansiedad')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('insomnio')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('suenio_perturbado')
-                                    ->label('Sueño perturbado')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('fatiga_cansancio')
-                                    ->label('Fatiga/Cansancio')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('mareos_desmayos')
-                                    ->label('Mareos/Desmayos')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('perdida_aumento_de_peso')
-                                    ->label('Pérdida/Aumento de peso')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('depresion')
-                                    ->label('Depresión')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('hemorragias')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente']),
-                                Radio::make('sudor_espontaneo')
-                                    ->label('Sudor espontáneo')
-                                    ->inline()
-                                    ->options(['ocasional', 'frecuente'])
-                            ])
-                            ->columnSpan(2),
+                                TextInput::make('cafe')
+                                    ->label('N° tazas de té/café al día')
+                                    ->numeric()
+                                    ->maxValue(20)
+                                    ->minValue(0),
 
-                        Section::make('¿Has tenido o tienes alguna de las siguientes enfermedades?')
-                            ->schema([
-                                Checkbox::make('ave')->label('AVE'),
-                                Checkbox::make('alergias'),
-                                Checkbox::make('anemia'),
-                                Checkbox::make('artritis'),
-                                Checkbox::make('asma'),
-                                Checkbox::make('cancer'),
-                                Checkbox::make('enfermedades_coronarias')->label('Enfermedades coronarias'),
-                                Checkbox::make('tiroides')->label('Enfermedades a la tiroides'),
-                                Checkbox::make('hepatitis'),
-                                Checkbox::make('hipertension')->label('Hipertensión'),
-                                Checkbox::make('vih')->label('VIH'),
-                                Checkbox::make('diabetes'),
-                            ])
-                            ->columnSpan(2),
+                                TextInput::make('agua')
+                                    ->label('N° litros de agua al día')
+                                    ->numeric()
+                                    ->maxValue(10)
+                                    ->minValue(0)
+                            ])->columnSpan(2),
 
-                        Section::make('Alguno de tus familiares ha tenido o tiene alguna de estas enfermedades?')
+                        Section::make()
                             ->schema([
-                                Checkbox::make('ave')->label('AVE'),
-                                Checkbox::make('artritis'),
-                                Checkbox::make('asma'),
-                                Checkbox::make('cancer'),
-                                Checkbox::make('enfermedades_coronarias')->label('Enfermedades coronarias'),
-                                Checkbox::make('tiroides')->label('Enfermedades a la tiroides'),
-                                Checkbox::make('hipertension')->label('Hipertensión'),
-                                Checkbox::make('diabetes'),
+                                Textarea::make('medicamentos')
+                                    ->label('¿Qué medicamentos has tomado en los últimos dos meses?
+                                                    (vitaminas, drogas, anticonceptivos, hierbas, etc.)')
+                                ->autosize()
                             ])
-                            ->columnSpan(2),
+                            ->columnSpan(2)
                     ])
             ]);
     }
@@ -243,7 +220,12 @@ class PacienteResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('rut')->searchable(),
+                TextColumn::make('nombre')->sortable()->searchable(),
+                TextColumn::make('diagnostico')->label('Diagnóstico occidental'),
+                TextColumn::make('fecha_nacimiento')->label('Edad')
+                    ->formatStateUsing(fn ($state) => Carbon::parse($state)->diff(now())->y . ' años'),
+                TextColumn::make('comuna.nombre'),
             ])
             ->filters([
                 //

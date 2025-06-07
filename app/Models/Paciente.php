@@ -9,25 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class Paciente extends Model
 {
-    protected $appends = [
-        'motivo_consulta_1',
-        'motivo_consulta_2',
-        'motivo_consulta_3',
-    ];
-    protected static function booted()
-    {
-        static::created(function (Paciente $paciente) {
-            DB::transaction(function () use ($paciente) {
-                $paciente->actualizarMotivosConsulta();
-            });
-        });
 
-        static::updated(function (Paciente $paciente) {
-            DB::transaction(function () use ($paciente) {
-                $paciente->actualizarMotivosConsulta();
-            });
-        });
-    }
+    protected $guarded = [];
+    protected $primaryKey = 'rut';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     public function comuna(): BelongsTo
     {
