@@ -14,6 +14,8 @@ use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Support\RawJs;
 use Filament\Tables;
@@ -24,6 +26,7 @@ use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Repeater;
 use Filament\Tables\Columns\TextColumn;
+use Illuminate\Database\Eloquent\Model;
 
 class PacienteResource extends Resource
 {
@@ -74,26 +77,69 @@ class PacienteResource extends Resource
 
                     Select::make('region_id')
                         ->label('Región')
-                        ->options(Region::all()->sortBy('id')->pluck('nombre', 'id'))
+                        ->options(Region::orderBy('id')->pluck('nombre', 'id')->toArray())
                         ->live()
                         ->required()
                         ->searchable()
                         ->dehydrated(false)
-                        ->columnSpan(2),
+                        ->columnSpan(2)
+                        ->afterStateHydrated(function (Get $get, Set $set) {
+                            if (! $get('region_id') && $get('comuna_id')) {
+                                $comuna = Comuna::find($get('comuna_id'));
+                                if ($comuna) {
+                                    $set('region_id', $comuna->region_id);
+                                }
+                            }
+                        })
+                        ->afterStateUpdated(function (Get $get, Set $set, $state) {
+                            $comunaId = $get('comuna_id');
+                            if (! $comunaId) {
+                                return;
+                            }
+                            $comuna = Comuna::find($comunaId);
+                            if (! $comuna || $comuna->region_id != $state) {
+                                $set('comuna_id', null);
+                            }
+                        })
+                    ,
+
                     Select::make('comuna_id')
                         ->label('Comuna')
-                        ->options(fn(callable $get) => Comuna::where('region_id', $get('region_id'))->orderBy('nombre')->pluck('nombre', 'id')
-                        )
+                        ->options(function (Get $get) {
+                            $regionId = $get('region_id');
+
+                            if (!$regionId && $get('comuna_id')) {
+                                $regionId = optional(Comuna::find($get('comuna_id')))->region_id;
+                            }
+
+                            if (! $regionId) {
+                                return [];
+                            }
+
+                            return Comuna::where('region_id', $regionId)
+                                ->orderBy('nombre')
+                                ->pluck('nombre', 'id')
+                                ->toArray();
+                        })
                         ->live()
                         ->required()
                         ->searchable()
-                        ->disabled(fn(callable $get) => empty($get('region_id')))
+                        ->disabled(fn (Get $get) => ! $get('region_id') && ! $get('comuna_id'))
                         ->columnSpan(2),
                     TextInput::make('direccion_calle')
                         ->label('Calle')
                         ->required()
                         ->disabled(fn(callable $get) => empty($get('comuna_id')))
-                        ->columnSpan(2),
+                        ->columnSpan(2)
+                        ->afterStateHydrated(function (Get $get, Set $set) {
+                            if (! $get('region_id') && $get('comuna_id')) {
+                                $comuna = Comuna::find($get('comuna_id'));
+                                if ($comuna) {
+                                    $set('region_id', $comuna->region_id);
+                                }
+                            }
+                        })
+                    ,
                     TextInput::make('direccion_numero')
                         ->label('Número')
                         ->required()
@@ -109,6 +155,7 @@ class PacienteResource extends Resource
                         ->columnSpan(2),
                     TextInput::make('celular')
                         ->label('Celular (+569)')
+                        ->required()
                         ->numeric()
                         ->maxValue(99999999)
                         ->columnSpan(2),
@@ -138,58 +185,68 @@ class PacienteResource extends Resource
                         Section::make()
                         ->schema([
                             Radio::make('deportes')
-                                ->dehydrated(false)
                                 ->boolean()
                                 ->inline()
                                 ->label('¿Haces deporte?')
-                                ->afterStateUpdated(function ($state, callable $set) {
-                                    $set('deporte', null);
+                                ->afterStateHydrated(function ($set, $record) {
+                                    if ($record && $record->deporte && $record->deporte > 0) {
+                                        $set('deportes', true);
+                                    } else {
+                                        $set('deportes', false);
+                                    }
                                 })
-                            ->reactive(),
+                                ->reactive(),
                             TextInput::make('deporte')
-                            ->label('veces por semana')
-                            ->numeric()
-                            ->maxValue(7)
-                            ->minValue(0)
+                                ->label('veces por semana')
+                                ->numeric()
+                                ->maxValue(7)
+                                ->minValue(0)
                                 ->reactive()
-                            ->hidden(fn ($get) => $get('deportes') !== '1'),
+                                ->hidden(fn ($get) => ! $get('deportes')),
 
                              Radio::make('alcohols')
-                                 ->dehydrated(false)
                                  ->boolean()
                                  ->inline()
                                  ->label('¿Tomas alcohol?')
-                                 ->afterStateUpdated(function ($state, callable $set) {
-                                     $set('alcohol', null);
+                                 ->afterStateHydrated(function ($set, $record) {
+                                     if ($record && $record->alcohol && $record->alcohol > 0) {
+                                         $set('alcohols', true);
+                                     } else {
+                                         $set('alcohols', false);
+                                     }
                                  })
                                  ->reactive(),
+
                             TextInput::make('alcohol')
                                 ->label('veces por semana')
                                 ->numeric()
                                 ->maxValue(7)
                                 ->minValue(0)
                                 ->reactive()
-                                ->hidden(fn ($get) => $get('alcohols') !== '1')
+                                ->hidden(fn ($get) => ! $get('alcohols'))
                         ])->columnSpan(2),
 
                         Section::make()
                             ->schema([
                                 Radio::make('fumas')
-                                    ->dehydrated(false)
                                     ->boolean()
                                     ->inline()
                                     ->label('¿Fumas?')
-                                    ->afterStateUpdated(function ($state, callable $set) {
-                                        $set('fuma', null);
+                                    ->afterStateHydrated(function ($set, $record) {
+                                        if ($record && $record->fumar && $record->fumar > 0) {
+                                            $set('fumas', true);
+                                        } else {
+                                            $set('fumas', false);
+                                        }
                                     })
                                     ->reactive(),
-                                TextInput::make('fuma')
+                                TextInput::make('fumar')
                                     ->label('cantidad por día')
                                     ->numeric()
                                     ->maxValue(80)
                                     ->minValue(0)
                                     ->reactive()
-                                    ->hidden(fn ($get) => $get('fumas') !== '1'),
+                                    ->hidden(fn ($get) => ! $get('fumas')),
 
                                 TextInput::make('cafe')
                                     ->label('N° tazas de té/café al día')
@@ -255,4 +312,6 @@ class PacienteResource extends Resource
             'edit' => Pages\EditPaciente::route('/{record}/edit'),
         ];
     }
+
 }
+

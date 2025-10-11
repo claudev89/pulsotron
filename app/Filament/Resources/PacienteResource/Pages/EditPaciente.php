@@ -16,4 +16,26 @@ class EditPaciente extends EditRecord
             Actions\DeleteAction::make(),
         ];
     }
+
+    protected function mutateFormDataBeforeSave(array $data): array
+    {
+        if (! $data['deportes']) {
+            $data['deporte'] = 0;
+        }
+
+        if (! $data['alcohols']) {
+            $data['alcohol'] = 0;
+        }
+
+        if (! $data['fumas']) {
+            $data['fumar'] = 0;
+        }
+
+        unset($data['deportes'], $data['alcohols'], $data['fumas']);
+
+
+
+
+        return $data;
+    }
 }
