@@ -3,12 +3,16 @@
 namespace App\Filament\Resources\PacienteResource\Pages;
 
 use App\Filament\Resources\PacienteResource;
+use App\Services\PacienteFormSynchronizer;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 
 class EditPaciente extends EditRecord
 {
     protected static string $resource = PacienteResource::class;
+
+    /** @var array<string, mixed> */
+    protected array $patientFormExtras = [];
 
     protected function getHeaderActions(): array
     {
@@ -19,23 +23,13 @@ class EditPaciente extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        if (! $data['deportes']) {
-            $data['deporte'] = 0;
-        }
-
-        if (! $data['alcohols']) {
-            $data['alcohol'] = 0;
-        }
-
-        if (! $data['fumas']) {
-            $data['fumar'] = 0;
-        }
-
-        unset($data['deportes'], $data['alcohols'], $data['fumas']);
-
-
-
+        [$data, $this->patientFormExtras] = PacienteFormSynchronizer::splitForPacienteTable($data);
 
         return $data;
+    }
+
+    protected function afterSave(): void
+    {
+        PacienteFormSynchronizer::persistExtras($this->record, $this->patientFormExtras);
     }
 }

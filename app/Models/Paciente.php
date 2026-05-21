@@ -48,7 +48,7 @@ class Paciente extends Model
     {
         return DB::table('motivo_consulta')
             ->where('paciente_rut', $this->rut)
-            ->where('priotidad', 1)
+            ->where('prioridad', 1)
             ->value('descripcion') ?? '';
     }
 
@@ -56,7 +56,7 @@ class Paciente extends Model
     {
         return DB::table('motivo_consulta')
             ->where('paciente_rut', $this->rut)
-            ->where('priotidad', 2)
+            ->where('prioridad', 2)
             ->value('descripcion') ?? '';
     }
 
@@ -64,9 +64,10 @@ class Paciente extends Model
     {
         return DB::table('motivo_consulta')
             ->where('paciente_rut', $this->rut)
-            ->where('priotidad', 3)
+            ->where('prioridad', 3)
             ->value('descripcion') ?? '';
     }
+
 
     public function diagnosticos() : BelongsTo
     {
@@ -77,5 +78,10 @@ class Paciente extends Model
     {
         return $this->belongsToMany(Sintoma::class, 'paciente_sintomas_previos', 'paciente_rut', 'sintoma_id')
             ->withPivot('frecuencia');
+    }
+
+    public function medicamentos()
+    {
+        return $this->belongsToMany(Medicamento::class);
     }
 }

@@ -29,7 +29,8 @@ class DatabaseSeeder extends Seeder
             SRF2Seeder::class,
             PulsoSeeder::class,
             CategoriasSindromesSeeder::class,
-            SindromeSeeder::class
+            SindromeSeeder::class,
+            MedicamentoSeeder::class,
         ]);
     }
 }
