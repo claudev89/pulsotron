@@ -27,7 +27,7 @@ class DatabaseSeeder extends Seeder
             SintomaSeeder::class,
             SRFSeeder::class,
             SRF2Seeder::class,
-            PulsoSeeder::class,
+//            PulsoSeeder::class,
             CategoriasSindromesSeeder::class,
             SindromeSeeder::class,
             MedicamentoSeeder::class,

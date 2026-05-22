@@ -421,7 +421,40 @@ class PacienteResource extends Resource
 
                                 Section::make()
                                 ->schema([
-                                    Select::make('pulso')->multiple(),
+                                     Select::make('pulso')
+                                         ->multiple()
+                                         ->options([
+                                             'Taiyin' => 'Taiyin',
+                                             'Jueyin' => 'Jueyin',
+                                             'Shaoyang' => 'Shaoyang',
+                                             'Shaoyin' => 'Shaoyin',
+                                             'Shaoyin invertido' => 'Shaoyin invertido',
+                                             'Gancho' => 'Gancho',
+                                             'Yangming' => 'Yangming',
+                                             'Taiyang' => 'Taiyang',
+                                             'Disperso' => 'Disperso',
+                                             'Expansivo' => 'Expansivo',
+                                             'Constrictivo' => 'Constrictivo',
+                                             'Pulso dentro de un pulso' => 'Pulso dentro de un pulso',
+                                             'Encogido' => 'Encogido',
+                                             'Fluido' => 'Fluido',
+                                             'Estancado' => 'Estancado',
+                                             'Corto' => 'Corto',
+                                             'Comprimido' => 'Comprimido',
+                                             'Cuerda' => 'Cuerda',
+                                             'Convexo' => 'Convexo',
+                                             'Cóncavo' => 'Cóncavo',
+                                             'Flotante' => 'Flotante',
+                                             'Fino' => 'Fino',
+                                             'Ancho' => 'Ancho',
+                                             'Sin forma' => 'Sin forma',
+                                             'Vacío' => 'Vacío',
+                                             'Gu' => 'Gu',
+                                             'Duro' => 'Duro',
+                                             'Rápido' => 'Rápido',
+                                             'Lento' => 'Lento',
+                                             'Intermitente' => 'Intermitente',
+                                         ]),
 
                                     CanvasPointerField::make('pulso_canvas')
                                         ->label('')

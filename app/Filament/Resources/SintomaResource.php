@@ -64,8 +64,8 @@ class SintomaResource extends Resource
     {
         return [
             'index' => Pages\ListSintomas::route('/'),
-            'create' => Pages\CreateSintoma::route('/create'),
-            'edit' => Pages\EditSintoma::route('/{record}/edit'),
+            // 'create' => Pages\CreateSintoma::route('/create'),
+            // 'edit' => Pages\EditSintoma::route('/{record}/edit'),
         ];
     }
 }

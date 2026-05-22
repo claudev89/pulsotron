@@ -10,6 +10,8 @@ class Enfermedad extends Model
 {
     public $timestamps = false;
 
+    protected $guarded = [];
+
     public function sintomas(): HasMany
     {
         return $this->hasMany(Sintoma::class);
@@ -18,5 +20,10 @@ class Enfermedad extends Model
     public function diagnosticos(): BelongsToMany
     {
         return $this->belongsToMany(Diagnostico::class);
+    }
+
+    public function pacientes(): BelongsToMany
+    {
+        return $this->belongsToMany(Paciente::class, 'enfermedads_pacientes', 'enfermedad_id', 'paciente_rut');
     }
 }

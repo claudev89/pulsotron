@@ -59,6 +59,8 @@ final class PacienteFormSynchronizer
         self::syncPacienteSrf2($rut, $extras);
         self::syncZonaDolor($rut, $extras);
         self::syncOtrosRepeater($rut, $extras);
+        self::syncPulso($rut, $extras);
+        self::syncPuntos($rut, $extras);
     }
 
     private static function syncMotivosConsulta(string $rut, array $extras): void
@@ -269,5 +271,74 @@ final class PacienteFormSynchronizer
                 'descripcion' => $text,
             ]);
         }
+    }
+
+    private static function syncPulso(string $rut, array $extras): void
+    {
+        if (! Schema::hasTable('pulsos')) {
+            return;
+        }
+
+        DB::table('pulsos')
+            ->where('relacionable_id', $rut)
+            ->where('relacionable_type', Paciente::class)
+            ->delete();
+
+        $pulso = $extras['pulso'] ?? null;
+        $canvas = $extras['pulso_canvas'] ?? null;
+
+        $binary = null;
+        if (is_string($canvas) && str_starts_with($canvas, 'data:image')
+            && preg_match('/^data:image\/\w+;base64,(.+)$/', $canvas, $matches)) {
+            $binary = base64_decode($matches[1], true);
+            if ($binary === false) {
+                $binary = null;
+            }
+        }
+
+        if (empty($pulso) && $binary === null) {
+            return;
+        }
+
+        DB::table('pulsos')->insert([
+            'pulso' => is_array($pulso) ? implode(',', $pulso) : '',
+            'lugar' => 'Izquierdo',
+            'imagen' => $binary ?? '',
+            'relacionable_id' => $rut,
+            'relacionable_type' => Paciente::class,
+        ]);
+    }
+
+    private static function syncPuntos(string $rut, array $extras): void
+    {
+        if (! Schema::hasTable('puntos')) {
+            return;
+        }
+
+        DB::table('puntos')
+            ->where('relacionable_id', $rut)
+            ->where('relacionable_type', Paciente::class)
+            ->delete();
+
+        $canvas = $extras['puntos'] ?? null;
+
+        $binary = null;
+        if (is_string($canvas) && str_starts_with($canvas, 'data:image')
+            && preg_match('/^data:image\/\w+;base64,(.+)$/', $canvas, $matches)) {
+            $binary = base64_decode($matches[1], true);
+            if ($binary === false) {
+                $binary = null;
+            }
+        }
+
+        if ($binary === null) {
+            return;
+        }
+
+        DB::table('puntos')->insert([
+            'imagen' => $binary,
+            'relacionable_id' => $rut,
+            'relacionable_type' => Paciente::class,
+        ]);
     }
 }

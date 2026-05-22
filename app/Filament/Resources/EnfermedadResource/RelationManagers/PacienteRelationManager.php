@@ -12,12 +12,15 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PacienteRelationManager extends RelationManager
 {
-    protected static string $relationship = 'paciente';
+    protected static string $relationship = 'pacientes';
 
     public function form(Form $form): Form
     {
         return $form
             ->schema([
+                Forms\Components\TextInput::make('rut')
+                    ->required()
+                    ->maxLength(10),
                 Forms\Components\TextInput::make('nombre')
                     ->required()
                     ->maxLength(255),
@@ -29,22 +32,14 @@ class PacienteRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('nombre')
             ->columns([
-                Tables\Columns\TextColumn::make('nombre'),
+                Tables\Columns\TextColumn::make('rut')->label('RUT')->searchable(),
+                Tables\Columns\TextColumn::make('nombre')->label('Nombre')->searchable(),
             ])
             ->filters([
                 //
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
-            ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+                
             ]);
     }
 }

@@ -9,6 +9,8 @@ class Sintoma extends Model
 {
     public $timestamps = false;
 
+    protected $guarded = [];
+
     public function enfermedad(): BelongsToMany
     {
         return $this->belongsToMany(Enfermedad::class);
